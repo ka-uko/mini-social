@@ -5,15 +5,11 @@
   {% if user.is_authenticated %}
     <div class="card mb-4">
       <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" action="{% url 'post_create' %}" enctype="multipart/form-data">
           {% csrf_token %}
-          <div class="mb-2">
-            {{ form.text }}
-          </div>
-          <div class="mb-3">
-            {{ form.image }}
-          </div>
-          <button class="btn btn-primary">Опубликовать</button>
+          {{ form.text }}
+          <div class="mt-2">{{ form.image }}</div>
+          <button class="btn btn-primary mt-3">Опубликовать</button>
         </form>
       </div>
     </div>
@@ -32,8 +28,26 @@
         </div>
         <p class="mb-2">{{ p.text }}</p>
         {% if p.image %}
-          <img src="{{ p.image.url }}" class="img-fluid rounded" alt="post image">
+          <img src="{{ p.image.url }}" class="img-fluid rounded mb-2" alt="">
         {% endif %}
+
+        <div class="d-flex align-items-center gap-3">
+          <form method="post" action="{% url 'toggle_like' p.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button class="btn btn-sm btn-outline-primary">❤️ {{ p.likes_count }}</button>
+          </form>
+
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'post_detail' p.pk %}">Открыть</a>
+
+          {% if user.is_authenticated and user == p.author %}
+            <a class="btn btn-sm btn-outline-warning" href="{% url 'post_edit' p.pk %}">Изменить</a>
+            <form method="post" action="{% url 'post_delete' p.pk %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger">Удалить</button>
+            </form>
+          {% endif %}
+        </div>
       </div>
     </div>
   {% empty %}
