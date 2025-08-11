@@ -15,4 +15,5 @@ urlpatterns = [
     path('post/<int:pk>/comment/', views.add_comment, name='add_comment'),
     path('comment/<int:pk>/edit/', views.comment_edit, name='comment_edit'),      # ← добавили
     path('comment/<int:pk>/delete/', views.comment_delete, name='comment_delete'),
+    path('comment/<int:parent_id>/reply/', views.add_reply, name='add_reply'),
 ]

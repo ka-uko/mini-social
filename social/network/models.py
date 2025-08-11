@@ -34,6 +34,8 @@ class Like(models.Model):
 class Comment(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='replies',
+                               null=True, blank=True)  # ← новое поле
     text = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -42,3 +44,7 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"c#{self.id} by {self.author} on p#{self.post_id}"
+
+    @property
+    def is_reply(self):
+        return self.parent_id is not None

@@ -8,6 +8,7 @@ from .models import Post, Like, Comment
 from .forms import PostForm, CommentForm
 
 
+
 def home(request):
     # Лента на главной + форма поста для залогиненных
     posts = (
@@ -37,7 +38,11 @@ def post_create(request):
 
 def post_detail(request, pk):
     post = get_object_or_404(Post.objects.select_related('author'), pk=pk)
-    comments = post.comments.select_related('author').all()
+    # Грузим сразу авторов комментов и их ответов
+    comments = (post.comments
+                    .select_related('author', 'parent')
+                    .prefetch_related('replies__author')
+                    .all())
     comment_form = CommentForm() if request.user.is_authenticated else None
     user_liked = request.user.is_authenticated and post.likes.filter(user=request.user).exists()
     return render(request, 'post_detail.html', {
@@ -46,7 +51,6 @@ def post_detail(request, pk):
         'comment_form': comment_form,
         'user_liked': user_liked,
     })
-
 
 @login_required
 def post_edit(request, pk):
@@ -128,3 +132,18 @@ def comment_delete(request, pk):
         comment.delete()
         messages.success(request, 'Комментарий удалён.')
     return redirect(request.POST.get('next') or 'post_detail', pk=post_pk)
+
+
+@require_POST
+@login_required
+def add_reply(request, parent_id):
+    parent = get_object_or_404(Comment.objects.select_related('post'), pk=parent_id)
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        reply = form.save(commit=False)
+        reply.author = request.user
+        reply.post = parent.post           # тот же пост
+        reply.parent = parent              # родительский комментарий
+        reply.save()
+        messages.success(request, 'Ответ добавлен.')
+    return redirect(request.POST.get('next') or 'post_detail', pk=parent.post_id)

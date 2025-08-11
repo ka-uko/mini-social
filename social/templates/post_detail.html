@@ -34,31 +34,80 @@
   </div>
 
   <h5 class="mb-3">Комментарии</h5>
+
+  {# ===== ЦИКЛ ПО КОРНЕВЫМ КОММЕНТАРИЯМ ===== #}
   {% for c in comments %}
-    <div class="border rounded p-2 mb-2">
-      <div class="d-flex justify-content-between">
-        <strong>@{{ c.author.username }}</strong>
-        <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
+    {% if not c.parent %}
+      <div class="border rounded p-2 mb-2">
+        <div class="d-flex justify-content-between">
+          <strong>@{{ c.author.username }}</strong>
+          <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
+        </div>
+        <div class="mb-1">{{ c.text }}</div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          {% if user.is_authenticated %}
+            <button class="btn btn-sm btn-outline-primary"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#reply-{{ c.id }}">
+              Ответить
+            </button>
+          {% endif %}
+
+          {% if user.is_authenticated and user == c.author %}
+            <a class="btn btn-sm btn-outline-warning"
+               href="{% url 'comment_edit' c.pk %}?next={{ request.path }}">Изменить</a>
+            <form method="post" action="{% url 'comment_delete' c.pk %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <button class="btn btn-sm btn-outline-danger">Удалить</button>
+            </form>
+          {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+          <div class="collapse mt-2" id="reply-{{ c.id }}">
+            <form method="post" action="{% url 'add_reply' c.id %}">
+              {% csrf_token %}
+              <div class="input-group">
+                <input type="text" name="text" class="form-control" placeholder="Ваш ответ...">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="btn btn-primary">Ответить</button>
+              </div>
+            </form>
+          </div>
+        {% endif %}
       </div>
-      <div>{{ c.text }}</div>
-  {% if user.is_authenticated and user == c.author %}
-    <div class="mt-1 d-flex gap-2">
-      <a class="btn btn-sm btn-outline-warning"
-         href="{% url 'comment_edit' c.pk %}?next={{ request.path }}">Изменить</a>
 
-      <form method="post" action="{% url 'comment_delete' c.pk %}">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.path }}">
-        <button class="btn btn-sm btn-outline-danger">Удалить</button>
-      </form>
-    </div>
-  {% endif %}
+      {# ===== ОТВЕТЫ (1 УРОВЕНЬ) ===== #}
+      {% for r in c.replies.all %}
+        <div class="ms-4 border-start ps-3 py-2 mb-2">
+          <div class="d-flex justify-content-between">
+            <strong>@{{ r.author.username }}</strong>
+            <small class="text-muted">{{ r.created_at|date:"d.m.Y H:i" }}</small>
+          </div>
+          <div class="mb-1">{{ r.text }}</div>
 
-    </div>
+          {% if user.is_authenticated and user == r.author %}
+            <div class="d-flex gap-2">
+              <a class="btn btn-sm btn-outline-warning"
+                 href="{% url 'comment_edit' r.pk %}?next={{ request.path }}">Изменить</a>
+              <form method="post" action="{% url 'comment_delete' r.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="btn btn-sm btn-outline-danger">Удалить</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
   {% empty %}
     <div class="text-muted mb-2">Комментариев пока нет.</div>
   {% endfor %}
 
+  {# ===== ФОРМА ДОБАВИТЬ КОРНЕВОЙ КОММЕНТАРИЙ (после endfor) ===== #}
   {% if user.is_authenticated %}
     <form method="post" action="{% url 'add_comment' post.pk %}" class="mt-3">
       {% csrf_token %}
