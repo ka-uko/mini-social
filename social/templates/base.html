@@ -19,6 +19,15 @@
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
           <ul class="navbar-nav me-auto mb-2 mb-md-0">
             <!-- тут позже добавим ссылки: лента, профиль, подписки -->
+            {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'profile' user.username %}">Профиль</a>
+              </li>
+            {% endif %}
+            <li class="nav-item"><a class="nav-link {% if not feed %}active{% endif %}" href="{% url 'home' %}">Все</a></li>
+            {% if user.is_authenticated %}
+              <li class="nav-item"><a class="nav-link {% if feed == 'sub' %}active{% endif %}" href="{% url 'home' %}?feed=sub">Подписки</a></li>
+            {% endif %}
           </ul>
           <ul class="navbar-nav ms-auto">
             {% if user.is_authenticated %}

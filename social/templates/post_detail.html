@@ -40,7 +40,7 @@
     {% if not c.parent %}
       <div class="border rounded p-2 mb-2">
         <div class="d-flex justify-content-between">
-          <strong>@{{ c.author.username }}</strong>
+          <strong><a href="{% url 'profile' p.author.username %}" class="text-decoration-none">@{{ p.author.username }}</a></strong>
           <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
         </div>
         <div class="mb-1">{{ c.text }}</div>
@@ -84,7 +84,7 @@
       {% for r in c.replies.all %}
         <div class="ms-4 border-start ps-3 py-2 mb-2">
           <div class="d-flex justify-content-between">
-            <strong>@{{ r.author.username }}</strong>
+            <strong><a href="{% url 'profile' p.author.username %}" class="text-decoration-none">@{{ p.author.username }}</a></strong>
             <small class="text-muted">{{ r.created_at|date:"d.m.Y H:i" }}</small>
           </div>
           <div class="mb-1">{{ r.text }}</div>

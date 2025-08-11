@@ -7,18 +7,29 @@ from django.views.decorators.http import require_POST
 from .models import Post, Like, Comment
 from .forms import PostForm, CommentForm
 
+from accounts.models import Follow
+
 
 
 def home(request):
-    # Лента на главной + форма поста для залогиненных
-    posts = (
-        Post.objects
-        .select_related('author')
-        .prefetch_related('likes', 'comments__author')
-        .all()
-    )
+    feed = request.GET.get('feed')  # None | 'sub'
+
+    if request.user.is_authenticated and feed == 'sub':
+        following_ids = Follow.objects.filter(
+            follower=request.user
+        ).values_list('following_id', flat=True)
+
+        posts = (Post.objects
+                 .filter(author_id__in=following_ids)
+                 .select_related('author')
+                 .prefetch_related('likes', 'comments__author'))
+    else:
+        posts = (Post.objects
+                 .select_related('author')
+                 .prefetch_related('likes', 'comments__author'))
+
     form = PostForm() if request.user.is_authenticated else None
-    return render(request, 'home.html', {'posts': posts, 'form': form})
+    return render(request, 'home.html', {'posts': posts, 'form': form, 'feed': feed})
 
 
 @login_required

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Подписчики @{{ profile_user.username }}{% endblock %}
+{% block content %}
+  <h3 class="mb-3">Подписчики @{{ profile_user.username }}</h3>
+  {% for f in followers %}
+    <div><a href="{% url 'profile' f.follower.username %}">@{{ f.follower.username }}</a></div>
+  {% empty %}
+    <div class="text-muted">Пока нет подписчиков.</div>
+  {% endfor %}
+{% endblock %}
