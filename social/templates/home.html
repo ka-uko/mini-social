@@ -9,7 +9,6 @@
           {% csrf_token %}
           {{ form.text }}
           <div class="mt-2">{{ form.image }}</div>
-          <!-- Сохраняем текущий режим ленты -->
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <button class="btn btn-primary mt-3">Опубликовать</button>
         </form>
@@ -25,7 +24,15 @@
     <div class="card mb-3">
       <div class="card-body">
         <div class="d-flex justify-content-between mb-2">
-          <strong><a href="{% url 'profile' p.author.username %}" class="text-decoration-none">@{{ p.author.username }}</a></strong>
+          <strong>
+            {% if p.author and p.author.username %}
+              <a href="{% url 'profile' p.author.username %}" class="text-decoration-none">
+                @{{ p.author.username }}
+              </a>
+            {% else %}
+              @{{ p.author }}
+            {% endif %}
+          </strong>
           <small class="text-muted">{{ p.created_at|date:"d.m.Y H:i" }}</small>
         </div>
         <p class="mb-2">{{ p.text }}</p>
@@ -36,7 +43,6 @@
         <div class="d-flex align-items-center gap-3">
           <form method="post" action="{% url 'toggle_like' p.pk %}">
             {% csrf_token %}
-            <!-- Сохраняем текущий режим ленты -->
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button class="btn btn-sm btn-outline-primary">❤️ {{ p.likes_count }}</button>
           </form>
@@ -47,7 +53,6 @@
             <a class="btn btn-sm btn-outline-warning" href="{% url 'post_edit' p.pk %}">Изменить</a>
             <form method="post" action="{% url 'post_delete' p.pk %}" class="d-inline">
               {% csrf_token %}
-              <!-- Сохраняем текущий режим ленты -->
               <input type="hidden" name="next" value="{{ request.get_full_path }}">
               <button class="btn btn-sm btn-outline-danger">Удалить</button>
             </form>
@@ -59,5 +64,3 @@
     <div class="text-muted">Постов пока нет. Будьте первым!</div>
   {% endfor %}
 {% endblock %}
-
-

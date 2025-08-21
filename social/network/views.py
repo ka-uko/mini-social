@@ -49,11 +49,12 @@ def post_create(request):
 
 def post_detail(request, pk):
     post = get_object_or_404(Post.objects.select_related('author'), pk=pk)
-    # Грузим сразу авторов комментов и их ответов
-    comments = (post.comments
-                    .select_related('author', 'parent')
-                    .prefetch_related('replies__author')
-                    .all())
+    comments = (
+        post.comments
+            .select_related('author', 'parent')
+            .prefetch_related('replies__author', 'replies__replies__author')  # глубже на уровень
+            .all()
+    )
     comment_form = CommentForm() if request.user.is_authenticated else None
     user_liked = request.user.is_authenticated and post.likes.filter(user=request.user).exists()
     return render(request, 'post_detail.html', {
