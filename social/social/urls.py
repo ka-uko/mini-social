@@ -23,7 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('network.urls')),        # главная/лента
     path('accounts/', include('django.contrib.auth.urls')),# login/logout/password_change и т.п.
-    path('accounts/', include('accounts.urls')), # <-- добавили signup
+    path('accounts/', include('accounts.urls')), # signup
+    path('messages/', include('messaging.urls')),#  сообщения
 ]
 
 if settings.DEBUG:

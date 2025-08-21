@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Сообщения — БаняNet{% endblock %}
+
+{% block content %}
+  <h3 class="mb-3">Диалоги</h3>
+
+  <div class="list-group">
+    {% for t in threads %}
+      {% if user == t.user1 %}
+        {% with other=t.user2 %}
+          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+             href="{% url 'thread_detail' t.pk %}">
+            <div>
+              <strong>@{{ other.username }}</strong>
+              {% if t.unread_count %}
+                <span class="ms-2 small text-dark">✉ {{ t.unread_count }}</span>
+              {% endif %}
+            </div>
+            <small class="text-muted">{{ t.updated_at|date:"d.m.Y H:i" }}</small>
+          </a>
+        {% endwith %}
+      {% else %}
+        {% with other=t.user1 %}
+          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+             href="{% url 'thread_detail' t.pk %}">
+            <div>
+              <strong>@{{ other.username }}</strong>
+              {% if t.unread_count %}
+                <span class="ms-2 small text-dark">✉ {{ t.unread_count }}</span>
+              {% endif %}
+            </div>
+            <small class="text-muted">{{ t.updated_at|date:"d.m.Y H:i" }}</small>
+          </a>
+        {% endwith %}
+      {% endif %}
+    {% empty %}
+      <div class="text-muted">Диалогов пока нет. Откройте профиль пользователя и нажмите «Написать».</div>
+    {% endfor %}
+  </div>
+{% endblock %}

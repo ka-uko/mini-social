@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Диалог с @{{ other.username }}{% endblock %}
+
+{% block content %}
+  <h3 class="mb-3">
+    Диалог с
+    {% if other and other.username %}
+      @{{ other.username }}
+    {% else %}
+      пользователем
+    {% endif %}
+  </h3>
+
+  <div class="mb-4">
+    {% for m in msgs %}
+      <div class="mb-2 {% if m.sender == user %}text-end{% endif %}">
+        <div class="d-inline-block p-2 rounded {% if m.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}">
+          {{ m.text|linebreaksbr }}
+        </div>
+        <div class="small text-muted">
+          {{ m.created_at|date:"d.m.Y H:i" }}
+          {% if m.sender == user %}
+            {% if m.read_at %}
+              ✔✔
+            {% else %}
+              ✔
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-muted">Сообщений пока нет.</div>
+    {% endfor %}
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="input-group">
+      <input type="text" name="text" class="form-control" placeholder="Напишите сообщение...">
+      <button class="btn btn-primary">Отправить</button>
+    </div>
+  </form>
+{% endblock %}
+
+
+
