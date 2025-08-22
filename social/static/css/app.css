@@ -25,7 +25,7 @@
 .post-form textarea,
 .comment-form textarea {
   width: 100%;
-  min-height: 120px;       /* поле побольше */
+  min-height: 120px;
   resize: vertical;
 }
 
@@ -42,3 +42,14 @@
 .btn-like .bi { font-size: 1rem; }
 .btn-like .bi-heart { opacity: .6; }            /* серый контур — “не лайк” */
 .btn-like .bi-heart-fill { color: #dc3545; }     /* красное заполненное — “лайк” */
+
+/* Форма ввода сообщения в диалоге */
+.message-form {
+  margin-bottom: 1.25rem;     /* отступ от нижнего края страницы */
+}
+.message-form textarea {
+  width: 100%;
+  min-height: 110px;          /* повыше, как у комментариев */
+  resize: vertical;
+}
+

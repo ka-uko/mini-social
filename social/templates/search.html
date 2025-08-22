@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Поиск{% endblock %}
+
+{% block content %}
+  <h3 class="mb-3">Поиск</h3>
+
+  <form class="mb-3" action="{% url 'search' %}">
+    <div class="input-group">
+      <input class="form-control" type="search" name="q" placeholder="Имя, город или текст поста" value="{{ q }}">
+      <button class="btn btn-primary">Искать</button>
+    </div>
+  </form>
+
+  {% if q %}
+    <h5 class="mt-4">Пользователи</h5>
+    <div class="list-group mb-4">
+      {% for u in users %}
+        <a class="list-group-item list-group-item-action" href="{% url 'profile' u.username %}">
+          @{{ u.username }}
+          {% if u.city %}<span class="text-muted">• {{ u.city }}</span>{% endif %}
+        </a>
+      {% empty %}
+        <div class="text-muted">Ничего не найдено.</div>
+      {% endfor %}
+    </div>
+
+    <h5>Посты</h5>
+    {% for p in posts %}
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <strong><a href="{% url 'profile' p.author.username %}" class="text-decoration-none">@{{ p.author.username }}</a></strong>
+            <small class="text-muted">{{ p.created_at|date:"d.m.Y H:i" }}</small>
+          </div>
+          <p class="mb-2">{{ p.text }}</p>
+          {% if p.image %}
+            <img src="{{ p.image.url }}" class="post-image mb-2" alt="">
+          {% endif %}
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'post_detail' p.pk %}">Открыть</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-muted">Ничего не найдено.</div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

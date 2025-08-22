@@ -33,12 +33,12 @@
     {% endfor %}
   </div>
 
-  <form method="post">
+  <form method="post" class="message-form">
     {% csrf_token %}
-    <div class="input-group">
-      <input type="text" name="text" class="form-control" placeholder="Напишите сообщение...">
-      <button class="btn btn-primary">Отправить</button>
+    <div class="mb-2">
+      <textarea name="text" class="form-control" rows="3" placeholder="Напишите сообщение..."></textarea>
     </div>
+    <button class="btn btn-primary">Отправить</button>
   </form>
 {% endblock %}
 

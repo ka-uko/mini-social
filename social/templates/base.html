@@ -13,6 +13,7 @@
     <!-- Наши стили -->
     <link href="{% static 'css/app.css' %}" rel="stylesheet">
   </head>
+  <script src="{% static 'js/app.js' %}"></script>
   <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
       <div class="container">
@@ -36,16 +37,27 @@
                   {% endif %}
                 </a>
               </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center gap-1" href="{% url 'notify_inbox' %}">
+                Уведомления
+                {% if notify_unread %}
+                  <span class="badge bg-warning text-dark">{{ notify_unread }}</span>
+                {% endif %}
+              </a>
+            </li>
             {% endif %}
 
-            <li class="nav-item">
-              <a class="nav-link {% if not feed %}active{% endif %}" href="{% url 'home' %}">Все</a>
-            </li>
             {% if user.is_authenticated %}
               <li class="nav-item">
                 <a class="nav-link {% if feed == 'sub' %}active{% endif %}" href="{% url 'home' %}?feed=sub">Подписки</a>
               </li>
             {% endif %}
+            <li class="nav-item ms-2">
+              <form class="d-flex" role="search" action="{% url 'search' %}">
+                <input class="form-control form-control-sm me-2" type="search" placeholder="Поиск" name="q" value="{{ request.GET.q }}">
+                <button class="btn btn-sm btn-outline-light">Найти</button>
+              </form>
+            </li>
           </ul>
 
           <ul class="navbar-nav ms-auto align-items-center">

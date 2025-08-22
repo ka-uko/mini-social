@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Уведомления{% endblock %}
+
+{% block content %}
+  <h3 class="mb-3">Уведомления</h3>
+  <div class="list-group">
+    {% for n in items %}
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          {% if n.verb == 'comment' %}
+            <strong>@{{ n.actor.username }}</strong>
+            прокомментировал ваш
+            {% if n.post_id %}
+              <a href="{% url 'post_detail' n.post_id %}">пост</a>
+            {% else %}
+              пост
+            {% endif %}
+          {% elif n.verb == 'like' %}
+            <strong>@{{ n.actor.username }}</strong>
+            поставил лайк на ваш
+            {% if n.post_id %}
+              <a href="{% url 'post_detail' n.post_id %}">пост</a>
+            {% else %}
+              пост
+            {% endif %}
+          {% elif n.verb == 'follow' %}
+            <strong>@{{ n.actor.username }}</strong> подписался на вас
+          {% else %}
+            Уведомление
+          {% endif %}
+          {% if not n.is_read %}
+            <span class="badge bg-primary ms-2">новое</span>
+          {% endif %}
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'notify_read' n.pk %}">Отметить прочитанным</a>
+      </div>
+    {% empty %}
+      <div class="text-muted">Пока уведомлений нет.</div>
+    {% endfor %}
+  </div>
+{% endblock %}

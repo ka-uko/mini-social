@@ -18,22 +18,20 @@
       </div>
 
       <p class="mb-2">{{ post.text }}</p>
-        {% if post.image %}
-          <img src="{{ post.image.url }}" class="post-image mb-2" alt="">
-        {% endif %}
+      {% if post.image %}
+        <img src="{{ post.image.url }}" class="post-image mb-2" alt="">
+      {% endif %}
 
       <div class="d-flex align-items-center gap-3">
-        <form method="post" action="{% url 'toggle_like' post.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button class="btn btn-sm btn-outline-primary btn-like">
-            {% if user_liked %}
-              <i class="bi bi-heart-fill"></i>{{ post.likes_count }}
-            {% else %}
-              <i class="bi bi-heart"></i>{{ post.likes_count }}
-            {% endif %}
-          </button>
-        </form>
+        <!-- AJAX like -->
+        <button type="button"
+                class="btn btn-sm btn-outline-primary btn-like"
+                data-like-btn
+                data-post-id="{{ post.id }}"
+                data-url="{% url 'toggle_like_ajax' post.pk %}">
+          <i class="bi {% if user_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+          <span data-like-count>{{ post.likes_count }}</span>
+        </button>
 
         {% if user.is_authenticated and user == post.author %}
           <a class="btn btn-sm btn-outline-warning" href="{% url 'post_edit' post.pk %}">Изменить</a>
@@ -49,18 +47,45 @@
 
   <h5 class="mb-3">Комментарии</h5>
 
-  {# — корневые комментарии; дочерние выводятся рекурсивно в partials/_comment.html — #}
-  {% for c in comments %}
-    {% if not c.parent %}
-      {% include "partials/_comment.html" with c=c level=0 %}
-    {% endif %}
-  {% empty %}
-    <div class="text-muted mb-2">Комментариев пока нет.</div>
-  {% endfor %}
+  <!-- Контейнер для списка комментариев (AJAX вставляет новые) -->
+  <div data-comments>
+    {% for c in comments %}
+      {% if not c.parent %}
+        {# корневой комментарий #}
+        {% include "partials/comment_item.html" with c=c %}
+        {# ответы #}
+        <div class="ms-4" data-replies>
+          {% for r in c.replies.all %}
+            {% include "partials/comment_item.html" with c=r %}
+          {% endfor %}
+        </div>
 
-  {# — форма нового корневого комментария — #}
+        {% if user.is_authenticated %}
+          <div class="collapse mt-2" id="reply-{{ c.id }}">
+            <form method="post"
+                  action="{% url 'add_reply' c.id %}"
+                  class="comment-form"
+                  data-ajax-reply>
+              {% csrf_token %}
+              <div class="mb-2">
+                <textarea name="text" class="form-control" rows="2" placeholder="Ваш ответ..."></textarea>
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              </div>
+              <button class="btn btn-primary btn-sm">Ответить</button>
+            </form>
+          </div>
+        {% endif %}
+      {% endif %}
+    {% empty %}
+      <div class="text-muted mb-2">Комментариев пока нет.</div>
+    {% endfor %}
+  </div>
+
   {% if user.is_authenticated %}
-    <form method="post" action="{% url 'add_comment' post.pk %}" class="mt-3 comment-form">
+    <form method="post"
+          action="{% url 'add_comment' post.pk %}"
+          class="mt-3 comment-form"
+          data-ajax-comment>
       {% csrf_token %}
       <div class="mb-2">
         <textarea name="text" class="form-control" rows="3" placeholder="Напишите комментарий..."></textarea>

@@ -7,7 +7,6 @@
       <div class="card-body">
         <form method="post" action="{% url 'post_create' %}" enctype="multipart/form-data" class="post-form">
           {% csrf_token %}
-          {# Сделаем textarea широкой (через CSS .post-form textarea) #}
           {{ form.text }}
           <div class="mt-2">{{ form.image }}</div>
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -25,7 +24,11 @@
     <div class="card mb-3">
       <div class="card-body">
         <div class="d-flex justify-content-between mb-2">
-          <strong><a href="{% url 'profile' p.author.username %}" class="text-decoration-none">@{{ p.author.username }}</a></strong>
+          <strong>
+            <a href="{% url 'profile' p.author.username %}" class="text-decoration-none">
+              @{{ p.author.username }}
+            </a>
+          </strong>
           <small class="text-muted">{{ p.created_at|date:"d.m.Y H:i" }}</small>
         </div>
 
@@ -35,20 +38,15 @@
         {% endif %}
 
         <div class="d-flex align-items-center gap-3">
-          <form method="post" action="{% url 'toggle_like' p.pk %}">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            {# Сердечко: если пост в liked_post_ids — красное, иначе контур #}
-            {% if liked_post_ids and p.id in liked_post_ids %}
-              <button class="btn btn-sm btn-outline-primary btn-like">
-                <i class="bi bi-heart-fill"></i>{{ p.likes_count }}
-              </button>
-            {% else %}
-              <button class="btn btn-sm btn-outline-primary btn-like">
-                <i class="bi bi-heart"></i>{{ p.likes_count }}
-              </button>
-            {% endif %}
-          </form>
+          <!-- AJAX like -->
+          <button type="button"
+                  class="btn btn-sm btn-outline-primary btn-like"
+                  data-like-btn
+                  data-post-id="{{ p.id }}"
+                  data-url="{% url 'toggle_like_ajax' p.pk %}">
+            <i class="bi {% if liked_post_ids and p.id in liked_post_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+            <span data-like-count>{{ p.likes_count }}</span>
+          </button>
 
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'post_detail' p.pk %}">Открыть</a>
 
@@ -67,3 +65,4 @@
     <div class="text-muted">Постов пока нет. Будьте первым!</div>
   {% endfor %}
 {% endblock %}
+

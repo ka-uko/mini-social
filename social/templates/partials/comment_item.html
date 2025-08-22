@@ -1,0 +1,10 @@
+{# ожидает переменную c #}
+<div class="border rounded p-2 mb-2">
+  <div class="d-flex justify-content-between">
+    <strong>
+      <a href="{% url 'profile' c.author.username %}" class="text-decoration-none">@{{ c.author.username }}</a>
+    </strong>
+    <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
+  </div>
+  <div class="mb-1">{{ c.text|linebreaksbr }}</div>
+</div>
