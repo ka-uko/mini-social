@@ -39,13 +39,13 @@
 
     {% if user.is_authenticated %}
       <div class="collapse mt-2" id="reply-{{ c.id }}">
-        <form method="post" action="{% url 'add_reply' c.id %}">
+        <form method="post" action="{% url 'add_reply' c.id %}" class="comment-form">
           {% csrf_token %}
-          <div class="input-group">
-            <input type="text" name="text" class="form-control" placeholder="Ваш ответ...">
+          <div class="mb-2">
+            <textarea name="text" class="form-control" rows="2" placeholder="Ваш ответ..."></textarea>
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button class="btn btn-primary">Ответить</button>
           </div>
+          <button class="btn btn-primary btn-sm">Ответить</button>
         </form>
       </div>
     {% endif %}

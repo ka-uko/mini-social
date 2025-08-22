@@ -18,16 +18,20 @@
       </div>
 
       <p class="mb-2">{{ post.text }}</p>
-      {% if post.image %}
-        <img src="{{ post.image.url }}" class="img-fluid rounded mb-2" alt="">
-      {% endif %}
+        {% if post.image %}
+          <img src="{{ post.image.url }}" class="post-image mb-2" alt="">
+        {% endif %}
 
       <div class="d-flex align-items-center gap-3">
         <form method="post" action="{% url 'toggle_like' post.pk %}">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button class="btn btn-sm btn-outline-primary">
-            {% if user_liked %}💔{% else %}❤️{% endif %} {{ post.likes_count }}
+          <button class="btn btn-sm btn-outline-primary btn-like">
+            {% if user_liked %}
+              <i class="bi bi-heart-fill"></i>{{ post.likes_count }}
+            {% else %}
+              <i class="bi bi-heart"></i>{{ post.likes_count }}
+            {% endif %}
           </button>
         </form>
 
@@ -56,13 +60,13 @@
 
   {# — форма нового корневого комментария — #}
   {% if user.is_authenticated %}
-    <form method="post" action="{% url 'add_comment' post.pk %}" class="mt-3">
+    <form method="post" action="{% url 'add_comment' post.pk %}" class="mt-3 comment-form">
       {% csrf_token %}
-      <div class="input-group">
-        {{ comment_form.text }}
+      <div class="mb-2">
+        <textarea name="text" class="form-control" rows="3" placeholder="Напишите комментарий..."></textarea>
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button class="btn btn-primary">Отправить</button>
       </div>
+      <button class="btn btn-primary">Отправить</button>
     </form>
   {% else %}
     <div class="alert alert-info mt-3">

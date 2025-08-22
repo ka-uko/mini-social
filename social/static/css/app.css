@@ -1,0 +1,44 @@
+/* === Картинки постов: фиксируем высоту 16 см  === */
+.post-image {
+  width: 100%;
+  max-height: 16cm;       /* ограничение по высоте */
+  object-fit: contain;    /* влезает целиком без обрезки */
+  border-radius: .5rem;
+}
+
+
+/* === Навбар: выравнивание и отступы для кнопки Выход === */
+.navbar .nav-hello {
+  opacity: .85;
+}
+.navbar .logout-form {
+  display: flex;
+  align-items: center;
+  margin-left: .75rem;     /* смещаем правее от текста Привет */
+}
+.navbar .logout-btn {
+  padding: .375rem .75rem; /* как обычная кнопка */
+  line-height: 1.25;
+}
+
+/* === Формы постов и комментариев === */
+.post-form textarea,
+.comment-form textarea {
+  width: 100%;
+  min-height: 120px;       /* поле побольше */
+  resize: vertical;
+}
+
+.comment-form {
+  margin-bottom: 1rem;     /* отступ от низа страницы */
+}
+
+/* Кнопка-лайк с иконками сердечка */
+.btn-like {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.btn-like .bi { font-size: 1rem; }
+.btn-like .bi-heart { opacity: .6; }            /* серый контур — “не лайк” */
+.btn-like .bi-heart-fill { color: #dc3545; }     /* красное заполненное — “лайк” */

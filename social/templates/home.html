@@ -5,8 +5,9 @@
   {% if user.is_authenticated %}
     <div class="card mb-4">
       <div class="card-body">
-        <form method="post" action="{% url 'post_create' %}" enctype="multipart/form-data">
+        <form method="post" action="{% url 'post_create' %}" enctype="multipart/form-data" class="post-form">
           {% csrf_token %}
+          {# Сделаем textarea широкой (через CSS .post-form textarea) #}
           {{ form.text }}
           <div class="mt-2">{{ form.image }}</div>
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -24,27 +25,29 @@
     <div class="card mb-3">
       <div class="card-body">
         <div class="d-flex justify-content-between mb-2">
-          <strong>
-            {% if p.author and p.author.username %}
-              <a href="{% url 'profile' p.author.username %}" class="text-decoration-none">
-                @{{ p.author.username }}
-              </a>
-            {% else %}
-              @{{ p.author }}
-            {% endif %}
-          </strong>
+          <strong><a href="{% url 'profile' p.author.username %}" class="text-decoration-none">@{{ p.author.username }}</a></strong>
           <small class="text-muted">{{ p.created_at|date:"d.m.Y H:i" }}</small>
         </div>
+
         <p class="mb-2">{{ p.text }}</p>
         {% if p.image %}
-          <img src="{{ p.image.url }}" class="img-fluid rounded mb-2" alt="">
+          <img src="{{ p.image.url }}" class="post-image mb-2" alt="">
         {% endif %}
 
         <div class="d-flex align-items-center gap-3">
           <form method="post" action="{% url 'toggle_like' p.pk %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button class="btn btn-sm btn-outline-primary">❤️ {{ p.likes_count }}</button>
+            {# Сердечко: если пост в liked_post_ids — красное, иначе контур #}
+            {% if liked_post_ids and p.id in liked_post_ids %}
+              <button class="btn btn-sm btn-outline-primary btn-like">
+                <i class="bi bi-heart-fill"></i>{{ p.likes_count }}
+              </button>
+            {% else %}
+              <button class="btn btn-sm btn-outline-primary btn-like">
+                <i class="bi bi-heart"></i>{{ p.likes_count }}
+              </button>
+            {% endif %}
           </form>
 
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'post_detail' p.pk %}">Открыть</a>

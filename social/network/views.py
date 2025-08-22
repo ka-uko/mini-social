@@ -9,16 +9,16 @@ from .forms import PostForm, CommentForm
 
 from accounts.models import Follow
 
-
+# ...
 
 def home(request):
     feed = request.GET.get('feed')  # None | 'sub'
 
     if request.user.is_authenticated and feed == 'sub':
+        from accounts.models import Follow
         following_ids = Follow.objects.filter(
             follower=request.user
         ).values_list('following_id', flat=True)
-
         posts = (Post.objects
                  .filter(author_id__in=following_ids)
                  .select_related('author')
@@ -28,8 +28,23 @@ def home(request):
                  .select_related('author')
                  .prefetch_related('likes', 'comments__author'))
 
+    # --- НОВОЕ: набор id постов, которые лайкнул текущий пользователь
+    if request.user.is_authenticated:
+        liked_post_ids = set(
+            Like.objects.filter(user=request.user, post_id__in=posts.values('id'))
+            .values_list('post_id', flat=True)
+        )
+    else:
+        liked_post_ids = set()
+
     form = PostForm() if request.user.is_authenticated else None
-    return render(request, 'home.html', {'posts': posts, 'form': form, 'feed': feed})
+    return render(request, 'home.html', {
+        'posts': posts,
+        'form': form,
+        'feed': feed,
+        'liked_post_ids': liked_post_ids,   # <-- передаём в шаблон
+    })
+
 
 
 @login_required
