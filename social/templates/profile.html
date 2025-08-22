@@ -2,23 +2,60 @@
 {% block title %}Профиль @{{ profile_user.username }}{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="d-flex align-items-center gap-2">
-      <h2 class="mb-0">@{{ profile_user.username }}</h2>
-
-      {% if user.is_authenticated and user != profile_user %}
-        <!-- Кнопка Написать: открывает (или создаёт) диалог -->
-        <a class="btn btn-outline-primary btn-sm"
-           href="{% url 'start_thread' profile_user.username %}">
-          Написать
-        </a>
+  <!-- Шапка профиля -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex align-items-start gap-3">
+      <!-- Аватар -->
+      {% if profile_user.avatar %}
+        <img src="{{ profile_user.avatar.url }}" alt="@{{ profile_user.username }}" width="72" height="72"
+             class="rounded-circle object-fit-cover" style="object-fit: cover;">
+      {% else %}
+        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
+             style="width:72px;height:72px;">
+          <span class="fs-4">{{ profile_user.username|slice:":1"|upper }}</span>
+        </div>
       {% endif %}
+
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="mb-1">@{{ profile_user.username }}</h2>
+
+          {% if user.is_authenticated and user != profile_user %}
+            <a class="btn btn-outline-primary btn-sm"
+               href="{% url 'start_thread' profile_user.username %}">Написать</a>
+          {% endif %}
+
+          {% if user.is_authenticated and user == profile_user %}
+            <a class="btn btn-outline-secondary btn-sm"
+               href="{% url 'profile_edit' profile_user.username %}">Редактировать</a>
+          {% endif %}
+        </div>
+
+        <!-- Роль, специализации, город -->
+        <div class="small text-muted mb-2">
+          {% if profile_user.role %}
+            {{ profile_user.get_role_display }}
+            {% if profile_user.role == 'provider' and profile_user.services.all %}
+              •
+              {% for s in profile_user.services.all %}
+                {{ s.title }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endif %}
+          {% if profile_user.city %} • {{ profile_user.city }}{% endif %}
+        </div>
+
+        <!-- О себе -->
+        {% if profile_user.bio %}
+          <div>{{ profile_user.bio|linebreaksbr }}</div>
+        {% endif %}
+      </div>
     </div>
 
+    <!-- Подписка/отписка -->
     {% if user.is_authenticated and user != profile_user %}
       <form method="post" action="{% url 'toggle_follow' profile_user.username %}">
         {% csrf_token %}
-        <!-- сохраняем возврат на текущий профиль с параметрами -->
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         {% if is_following %}
           <button class="btn btn-outline-secondary">Отписаться</button>
@@ -29,6 +66,7 @@
     {% endif %}
   </div>
 
+  <!-- Статистика -->
   <div class="mb-4">
     <a href="{% url 'followers_list' profile_user.username %}" class="me-3">
       Подписчики: <strong>{{ stats.followers_count }}</strong>
@@ -39,6 +77,7 @@
     <span>Постов: <strong>{{ stats.posts_count }}</strong></span>
   </div>
 
+  <!-- Посты пользователя -->
   <h5 class="mb-3">Посты</h5>
   {% for p in posts %}
     <div class="card mb-3">

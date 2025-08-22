@@ -1,23 +1,26 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import User, Follow
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from .models import User, ServiceTag, Follow
 
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
-    list_display = ("id", "username", "email", "is_staff", "date_joined")
-    search_fields = ("username", "email")
-    list_filter = ("is_staff", "is_superuser", "is_active")
-    ordering = ("-date_joined",)
+class UserAdmin(DjangoUserAdmin):
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("Личная информация", {"fields": ("first_name", "last_name", "email")}),
+        ("Профиль", {"fields": ("avatar", "bio", "role", "services", "city")}),
+        ("Права доступа", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        ("Даты", {"fields": ("last_login", "date_joined")}),
+    )
+    list_display = ("username", "email", "role", "city", "is_staff")
+    list_filter = ("role", "is_staff", "is_superuser", "is_active", "groups")
+    filter_horizontal = ("groups", "user_permissions", "services")
+
+@admin.register(ServiceTag)
+class ServiceTagAdmin(admin.ModelAdmin):
+    list_display = ("code", "title")
+    search_fields = ("code", "title")
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ("id", "follower", "following", "created_at")
+    list_display = ("follower", "following", "created_at")
     search_fields = ("follower__username", "following__username")
-    list_filter = ("created_at",)
-    autocomplete_fields = ("follower", "following")
-    readonly_fields = ("created_at",)
-
-# Брендинг админки (можно перенести в любой из admin.py установленных приложений)
-admin.site.site_header = "Админка БаняNet"
-admin.site.site_title = "БаняNet Admin"
-admin.site.index_title = "Управление мини-соцсетью"

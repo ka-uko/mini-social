@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Редактировать профиль{% endblock %}
+
+{% block content %}
+  <h3 class="mb-3">Редактировать профиль</h3>
+
+  <form method="post" enctype="multipart/form-data" class="card p-3">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-3">
+        {% if profile_user.avatar %}
+          <img src="{{ profile_user.avatar.url }}" class="img-fluid rounded mb-2" alt="">
+        {% endif %}
+        <div class="form-label">{{ form.avatar.label }}</div>
+        {{ form.avatar }}
+      </div>
+
+      <div class="col-md-9">
+        <div class="mb-3">
+          <label class="form-label">{{ form.bio.label }}</label>
+          {{ form.bio }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.role.label }}</label>
+          {{ form.role }}
+          {% if form.role.help_text %}
+            <div class="form-text">{{ form.role.help_text }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3" id="services-block">
+          <label class="form-label">{{ form.services.label }}</label>
+          <div class="form-text mb-2">Выберите одну или несколько специализаций.</div>
+          {{ form.services }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.city.label }}</label>
+          {{ form.city }}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button class="btn btn-primary">Сохранить</button>
+      <a class="btn btn-outline-secondary" href="{% url 'profile' profile_user.username %}">Отмена</a>
+    </div>
+  </form>
+
+  <script>
+    (function() {
+      const roleSelect = document.getElementById("id_role");
+      const servicesBlock = document.getElementById("services-block");
+
+      function toggleServices() {
+        const isProvider = roleSelect && roleSelect.value === "provider";
+        servicesBlock.style.display = isProvider ? "" : "none";
+
+        // Если не провайдер — снимаем все чекбоксы
+        if (!isProvider) {
+          document.querySelectorAll('#services-block input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+      }
+
+      if (roleSelect && servicesBlock) {
+        toggleServices();
+        roleSelect.addEventListener("change", toggleServices);
+      }
+    })();
+  </script>
+{% endblock %}
+

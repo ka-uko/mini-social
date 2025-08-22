@@ -1,4 +1,3 @@
-# accounts/views.py
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -8,8 +7,10 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView
 
 from .forms import SignupForm
+from .forms import ProfileForm
 from .models import User, Follow
 from network.models import Post
+
 
 
 class SignupView(CreateView):
@@ -56,6 +57,27 @@ def profile(request, username: str):
         'posts': posts,
         'stats': stats,
         'is_following': is_following,
+    })
+
+@login_required
+def profile_edit(request, username):
+    profile_user = get_object_or_404(User, username=username)
+    if request.user != profile_user:
+        messages.error(request, "Можно редактировать только свой профиль.")
+        return redirect("profile", username=profile_user.username)
+
+    if request.method == "POST":
+        form = ProfileForm(request.POST, request.FILES, instance=profile_user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Профиль обновлён.")
+            return redirect("profile", username=profile_user.username)
+    else:
+        form = ProfileForm(instance=profile_user)
+
+    return render(request, "accounts/profile_edit.html", {
+        "profile_user": profile_user,
+        "form": form,
     })
 
 
@@ -137,4 +159,7 @@ def home(request):
 
     form = PostForm() if request.user.is_authenticated else None
     return render(request, 'home.html', {'posts': posts, 'form': form, 'feed': feed})
+
+
+
 
