@@ -1,11 +1,13 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.db.models import F, Q
+from django.db.models import F, Q  # если используешь в других местах
 
 class User(AbstractUser):
     class Roles(models.TextChoices):
-        PROVIDER = "provider", "Оказываю банные услуги"
+        PROVIDER   = "provider",   "Банные услуги"
+        BUILDER    = "builder",    "Строительство бань"
+        SELLER     = "seller",     "Продажа товаров"
         ENTHUSIAST = "enthusiast", "Люблю попариться"
 
     avatar = models.ImageField(
@@ -37,12 +39,13 @@ class ServiceTag(models.Model):
     title = models.CharField(max_length=100, verbose_name="Название")
 
     class Meta:
-        ordering = ["title"]  # базовый порядок (перекроем в форме)
+        ordering = ["title"]
         verbose_name = "Специализация"
         verbose_name_plural = "Специализации"
 
     def __str__(self):
         return self.title
+
 
 
 class Follow(models.Model):

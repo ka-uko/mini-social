@@ -1,10 +1,70 @@
 {# ожидает переменную c #}
-<div class="border rounded p-2 mb-2">
+<div class="border rounded p-2 mb-2" data-comment-id="{{ c.id }}">
   <div class="d-flex justify-content-between">
-    <strong>
-      <a href="{% url 'profile' c.author.username %}" class="text-decoration-none">@{{ c.author.username }}</a>
-    </strong>
+    <div>
+      <strong>
+        <a href="{% url 'profile' c.author.username %}" class="text-decoration-none">
+          @{{ c.author.username }}
+        </a>
+      </strong>
+      {% if c.parent %}
+        <small class="text-muted">
+          в ответ
+          <a href="{% url 'profile' c.parent.author.username %}" class="text-decoration-none">
+            @{{ c.parent.author.username }}
+          </a>
+        </small>
+      {% endif %}
+    </div>
     <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
   </div>
+
   <div class="mb-1">{{ c.text|linebreaksbr }}</div>
+
+  <div class="d-flex gap-2 flex-wrap">
+    {% if user.is_authenticated %}
+      <button class="btn btn-sm btn-outline-primary"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#reply-{{ c.id }}"
+              aria-expanded="false"
+              aria-controls="reply-{{ c.id }}">
+        Ответить
+      </button>
+    {% endif %}
+
+    {% if user.is_authenticated and user == c.author %}
+      <a class="btn btn-sm btn-outline-warning"
+         href="{% url 'comment_edit' c.pk %}?next={{ request.get_full_path|urlencode }}">
+        Изменить
+      </a>
+      <form method="post" action="{% url 'comment_delete' c.pk %}" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="btn btn-sm btn-outline-danger">Удалить</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if user.is_authenticated %}
+    <div class="collapse mt-2" id="reply-{{ c.id }}">
+      <form method="post"
+            action="{% url 'add_reply' c.id %}"
+            class="comment-form"
+            data-ajax-reply
+            data-target="#replies-{{ c.id }}">
+        {% csrf_token %}
+        <div class="mb-2">
+          <textarea name="text" class="form-control" rows="2" placeholder="Ваш ответ..."></textarea>
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        </div>
+        <button class="btn btn-primary btn-sm">Ответить</button>
+      </form>
+    </div>
+  {% endif %}
+
+  {# Контейнер для ответов именно на ЭТОТ комментарий (без вложенных отступов) #}
+  <div class="mt-2" data-replies id="replies-{{ c.id }}"></div>
 </div>
+
+

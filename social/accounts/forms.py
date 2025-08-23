@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User, ServiceTag
-from django.db.models import Case, When, IntegerField
+
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=False)
@@ -12,50 +12,38 @@ class SignupForm(UserCreationForm):
 
 
 class ProfileForm(forms.ModelForm):
+    # Явно объявляем поле, чтобы гарантировать корректную валидацию списка значений
+    services = forms.ModelMultipleChoiceField(
+        label="Специализации",
+        queryset=ServiceTag.objects.all().order_by("title"),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+    )
+
     class Meta:
         model = User
         fields = ("avatar", "bio", "role", "services", "city")
         labels = {
-            "avatar": "Фотография (аватар)",
+            "avatar": "Аватар",
             "bio": "О себе",
             "role": "Тип пользователя",
             "services": "Специализации",
             "city": "Город",
         }
         widgets = {
-            "bio": forms.Textarea(attrs={"rows": 3, "placeholder": "Пару строк о себе..."}),
-            "role": forms.Select(attrs={"class": "form-select"}),
-            "services": forms.CheckboxSelectMultiple(),
+            "bio": forms.Textarea(attrs={"rows": 6, "class": "form-control"}),
+            "role": forms.Select(attrs={"class": "form-select", "id": "id_role"}),
+            # services виджет задан выше в поле
+            "city": forms.TextInput(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Аватар не обязателен
+        self.fields["avatar"].required = False
+        # Убедимся, что queryset всегда полный и отсортирован (если кто-то поменяет в админке)
+        self.fields["services"].queryset = ServiceTag.objects.all().order_by("title")
 
-        # Жёстко задаём порядок: Пармастер → Массаж → Аренда
-        ordering = Case(
-            When(code="parmaster", then=0),
-            When(code="massage", then=1),
-            When(code="rent", then=2),
-            default=99,
-            output_field=IntegerField(),
-        )
-        self.fields["services"].queryset = ServiceTag.objects.all().order_by(ordering, "title")
-
-        # Подсказка к полю role
-        self.fields["role"].help_text = "Если вы оказываете услуги — выберите специализации ниже."
-
-        # Если роль не provider — можно скрыть поле в шаблоне (JS), но также чистим на уровне формы:
-        role_val = (self.instance.role if self.instance else None)
-        if role_val != "provider":
-            # визуально мы спрячем в шаблоне; здесь важно — логика сохранения (см. clean)
-            pass
-
-    def clean(self):
-        cleaned = super().clean()
-        role = cleaned.get("role")
-        services = cleaned.get("services")
-        if role != "provider":
-            # если не провайдер — не даём сохранять специализации
-            cleaned["services"] = []
-        return cleaned
-
+    # ВАЖНО: не перезаписываем cleaned["services"]!
+    # Ранее тут был clean(), который обнулял services для ролей != provider.
+    # Теперь сохраняем услуги для всех ролей (provider/builder/seller).

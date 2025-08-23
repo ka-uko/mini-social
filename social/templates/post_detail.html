@@ -23,7 +23,6 @@
       {% endif %}
 
       <div class="d-flex align-items-center gap-3">
-        <!-- AJAX like -->
         <button type="button"
                 class="btn btn-sm btn-outline-primary btn-like"
                 data-like-btn
@@ -45,36 +44,21 @@
     </div>
   </div>
 
-  <h5 class="mb-3">Комментарии</h5>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0" id="comments">Комментарии</h5>
+    <span class="text-muted">Всего: {{ post.comments.count }}</span>
+  </div>
 
-  <!-- Контейнер для списка комментариев (AJAX вставляет новые) -->
   <div data-comments>
     {% for c in comments %}
       {% if not c.parent %}
-        {# корневой комментарий #}
+        {# Корневой комментарий #}
         {% include "partials/comment_item.html" with c=c %}
-        {# ответы #}
-        <div class="ms-4" data-replies>
-          {% for r in c.replies.all %}
-            {% include "partials/comment_item.html" with c=r %}
-          {% endfor %}
-        </div>
 
-        {% if user.is_authenticated %}
-          <div class="collapse mt-2" id="reply-{{ c.id }}">
-            <form method="post"
-                  action="{% url 'add_reply' c.id %}"
-                  class="comment-form"
-                  data-ajax-reply>
-              {% csrf_token %}
-              <div class="mb-2">
-                <textarea name="text" class="form-control" rows="2" placeholder="Ваш ответ..."></textarea>
-                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-              </div>
-              <button class="btn btn-primary btn-sm">Ответить</button>
-            </form>
-          </div>
-        {% endif %}
+        {# Прямые ответы на этот комментарий #}
+        {% for r in c.replies.all %}
+          {% include "partials/comment_item.html" with c=r %}
+        {% endfor %}
       {% endif %}
     {% empty %}
       <div class="text-muted mb-2">Комментариев пока нет.</div>
@@ -99,3 +83,5 @@
     </div>
   {% endif %}
 {% endblock %}
+
+

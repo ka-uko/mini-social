@@ -48,6 +48,13 @@
             <span data-like-count>{{ p.likes_count }}</span>
           </button>
 
+          <!-- Счётчик комментариев с переходом к блоку комментариев в посте -->
+          <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+             href="{% url 'post_detail' p.pk %}#comments">
+            <i class="bi bi-chat"></i>
+            <span>Комментарии {{ p.comments.count }}</span>
+          </a>
+
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'post_detail' p.pk %}">Открыть</a>
 
           {% if user.is_authenticated and user == p.author %}

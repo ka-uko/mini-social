@@ -2,72 +2,190 @@
 {% block title %}Редактировать профиль{% endblock %}
 
 {% block content %}
-  <h3 class="mb-3">Редактировать профиль</h3>
+<h3 class="mb-4">Редактировать профиль</h3>
 
-  <form method="post" enctype="multipart/form-data" class="card p-3">
-    {% csrf_token %}
-    <div class="row g-3">
-      <div class="col-md-3">
-        {% if profile_user.avatar %}
-          <img src="{{ profile_user.avatar.url }}" class="img-fluid rounded mb-2" alt="">
-        {% endif %}
-        <div class="form-label">{{ form.avatar.label }}</div>
-        {{ form.avatar }}
-      </div>
+<form method="post" enctype="multipart/form-data" class="profile-edit-form">
+  {% csrf_token %}
+  <div class="row g-4">
+    <!-- Левая колонка: аватар -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-center mb-3">
+            {% if profile_user.avatar %}
+              <img id="avatar-preview"
+                   src="{{ profile_user.avatar.url }}"
+                   alt="avatar"
+                   class="img-fluid rounded"
+                   style="max-height: 240px; object-fit: cover;">
+              <div id="avatar-placeholder" class="d-none bg-light border rounded d-flex align-items-center justify-content-center" style="height: 240px;">
+                Нет аватара
+              </div>
+            {% else %}
+              <img id="avatar-preview"
+                   src=""
+                   alt="avatar"
+                   class="img-fluid rounded d-none"
+                   style="max-height: 240px; object-fit: cover;">
+              <div id="avatar-placeholder" class="bg-light border rounded d-flex align-items-center justify-content-center" style="height: 240px;">
+                Нет аватара
+              </div>
+            {% endif %}
+          </div>
 
-      <div class="col-md-9">
-        <div class="mb-3">
-          <label class="form-label">{{ form.bio.label }}</label>
-          {{ form.bio }}
-        </div>
+          <label class="form-label">{{ form.fields.avatar.label }}</label>
 
-        <div class="mb-3">
-          <label class="form-label">{{ form.role.label }}</label>
-          {{ form.role }}
-          {% if form.role.help_text %}
-            <div class="form-text">{{ form.role.help_text }}</div>
-          {% endif %}
-        </div>
+          <div class="d-grid gap-2">
+            <label for="id_avatar" class="btn btn-outline-secondary">Выбор файла</label>
+            <input type="file" name="avatar" id="id_avatar" class="d-none" accept="image/*">
 
-        <div class="mb-3" id="services-block">
-          <label class="form-label">{{ form.services.label }}</label>
-          <div class="form-text mb-2">Выберите одну или несколько специализаций.</div>
-          {{ form.services }}
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">{{ form.city.label }}</label>
-          {{ form.city }}
+            {% if profile_user.avatar %}
+              <button type="submit"
+                      name="clear_avatar"
+                      value="1"
+                      class="btn btn-outline-danger">
+                Удалить фото
+              </button>
+            {% endif %}
+          </div>
+          <div id="avatar-filename" class="form-text mt-2">файл не выбран</div>
         </div>
       </div>
     </div>
 
-    <div class="mt-3">
-      <button class="btn btn-primary">Сохранить</button>
-      <a class="btn btn-outline-secondary" href="{% url 'profile' profile_user.username %}">Отмена</a>
+    <!-- Правая колонка: о себе, тип, специализации, город -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <!-- О себе -->
+          <div class="mb-3">
+            <label for="id_bio" class="form-label">{{ form.fields.bio.label }}</label>
+            {{ form.bio }}
+          </div>
+
+          <!-- Тип пользователя -->
+          <div class="mb-3">
+            <label for="id_role" class="form-label">{{ form.fields.role.label }}</label>
+            {{ form.role }}
+            <div class="form-text">
+              Выберите Ваше направление
+            </div>
+          </div>
+
+          <!-- Специализации (фильтруются по роли через JS) -->
+          <div class="mb-3" id="services-block">
+            <label class="form-label">{{ form.fields.services.label }}</label>
+            <div id="services-help" class="form-text mb-2">
+              Отметьте Вашу специализацию (несколько)
+            </div>
+
+              <div class="row" id="services-list">
+                {% for tag in form.fields.services.queryset %}
+                  <div class="col-md-6 mb-2" data-code="{{ tag.code }}">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             name="services"
+                             value="{{ tag.id }}"
+                             id="service-{{ tag.id }}"
+                             {% if selected_service_ids and tag.id|stringformat:'s' in selected_service_ids %}checked{% endif %}>
+                      <label class="form-check-label" for="service-{{ tag.id }}">
+                        {{ tag.title }}
+                      </label>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+          </div>
+
+          <!-- Город -->
+          <div class="mb-3">
+            <label for="id_city" class="form-label">{{ form.fields.city.label }}</label>
+            {{ form.city }}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary">Сохранить</button>
+            <a class="btn btn-outline-secondary" href="{% url 'profile' profile_user.username %}">Отмена</a>
+          </div>
+        </div>
+      </div>
     </div>
-  </form>
+  </div>
+</form>
 
-  <script>
-    (function() {
-      const roleSelect = document.getElementById("id_role");
-      const servicesBlock = document.getElementById("services-block");
+<!-- JS: подпись файла и фильтрация специализаций по роли -->
+<script>
+  (function () {
+    // ===== Превью аватара + подпись =====
+    const input = document.getElementById('id_avatar');
+    const help  = document.getElementById('avatar-filename');
+    const img   = document.getElementById('avatar-preview');
+    const ph    = document.getElementById('avatar-placeholder');
 
-      function toggleServices() {
-        const isProvider = roleSelect && roleSelect.value === "provider";
-        servicesBlock.style.display = isProvider ? "" : "none";
-
-        // Если не провайдер — снимаем все чекбоксы
-        if (!isProvider) {
-          document.querySelectorAll('#services-block input[type="checkbox"]').forEach(cb => cb.checked = false);
+    if (input) {
+      input.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+          const url = URL.createObjectURL(this.files[0]);
+          if (img) {
+            img.src = url;
+            img.classList.remove('d-none');
+          }
+          if (ph) ph.classList.add('d-none');
+          if (help) help.textContent = 'Новое фото загружено';
+        } else {
+          if (help) help.textContent = 'файл не выбран';
+          // Вернём плейсхолдер, если надо
+          if (ph) ph.classList.remove('d-none');
+          if (img) img.classList.add('d-none');
         }
-      }
+      });
+    }
 
-      if (roleSelect && servicesBlock) {
-        toggleServices();
-        roleSelect.addEventListener("change", toggleServices);
+    // ===== Фильтрация специализаций по роли =====
+    const roleSelect   = document.getElementById('id_role');
+    const servicesWrap = document.getElementById('services-block');
+    const items        = document.querySelectorAll('#services-list [data-code]');
+
+    const groupsByCode = {
+      'steam_master': 'provider',
+      'massage':      'provider',
+      'rent_bath':    'provider',
+      'build':         'builder',
+      'consult_build': 'builder',
+      'brooms':      'seller',
+      'clothes':     'seller',
+      'accessories': 'seller',
+      'cosmetics':   'seller',
+    };
+
+    function applyRoleFilter() {
+      if (!roleSelect || !servicesWrap) return;
+      const role = roleSelect.value || '';
+
+      if (role === 'enthusiast' || !role) {
+        servicesWrap.style.display = 'none';
+        return;
       }
-    })();
-  </script>
+      servicesWrap.style.display = '';
+
+      const allowed = {
+        'provider': ['provider'],
+        'builder':  ['builder'],
+        'seller':   ['seller'],
+      }[role] || [];
+
+      items.forEach(el => {
+        const code = el.getAttribute('data-code');
+        const group = groupsByCode[code] || 'other';
+        el.style.display = allowed.includes(group) ? '' : 'none';
+      });
+    }
+
+    applyRoleFilter();
+    if (roleSelect) roleSelect.addEventListener('change', applyRoleFilter);
+  })();
+</script>
 {% endblock %}
+
 

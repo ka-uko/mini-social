@@ -1,4 +1,4 @@
-// === helpers ===
+// ===== helpers =====
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -11,22 +11,21 @@ async function fetchJsonOrReload(url, options) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const ct = (res.headers.get('content-type') || '').toLowerCase();
   if (!ct.includes('application/json')) {
-    // Сервер неожиданно вернул HTML (редирект/шаблон). На всякий случай обновим страницу.
-    console.warn('Expected JSON, got', ct);
-    const txt = await res.text(); // чтобы не висел body stream
+    console.warn('Expected JSON, got:', ct);
+    await res.text(); // consume body
     window.location.reload();
     throw new Error('Non-JSON response, reloading');
   }
   return await res.json();
 }
 
-// === AJAX Like ===
+// ===== AJAX Like =====
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('[data-like-btn]');
   if (!btn) return;
 
   e.preventDefault();
-  if (btn.disabled) return; // защита
+  if (btn.disabled) return;
   btn.disabled = true;
 
   const url = btn.getAttribute('data-url');
@@ -52,13 +51,13 @@ document.addEventListener('click', async (e) => {
     }
     if (countSpan) countSpan.textContent = data.likes_count;
   } catch (err) {
-    console.error(err);
+    console.error('Like error:', err);
   } finally {
     btn.disabled = false;
   }
 });
 
-// === AJAX Add Comment (корневой) ===
+// ===== AJAX Add Root Comment =====
 document.addEventListener('submit', async (e) => {
   const form = e.target.closest('form[data-ajax-comment]');
   if (!form) return;
@@ -78,7 +77,7 @@ document.addEventListener('submit', async (e) => {
         'X-CSRFToken': csrftoken,
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: formData
+      body: formData,
     });
 
     const list = document.querySelector('[data-comments]');
@@ -88,13 +87,14 @@ document.addEventListener('submit', async (e) => {
     const textarea = form.querySelector('textarea[name="text"]');
     if (textarea) textarea.value = '';
   } catch (err) {
-    console.error(err);
+    console.error('Add comment error:', err);
   } finally {
     if (btn) btn.disabled = false;
   }
 });
 
-// === AJAX Reply (ответ на комментарий) ===
+
+// ===== AJAX Reply (answers on any comment level) =====
 document.addEventListener('submit', async (e) => {
   const form = e.target.closest('form[data-ajax-reply]');
   if (!form) return;
@@ -114,17 +114,29 @@ document.addEventListener('submit', async (e) => {
         'X-CSRFToken': csrftoken,
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: formData
+      body: formData,
     });
 
-    const block = form.closest('[data-replies]') || document.querySelector('[data-comments]');
+    const targetSel = form.getAttribute('data-target');
+    const block =
+      (targetSel && document.querySelector(targetSel)) ||
+      form.closest('[data-replies]') ||
+      document.querySelector('[data-comments]');
+
     if (block && data.rendered_html) {
       block.insertAdjacentHTML('beforeend', data.rendered_html);
     }
+
     const textarea = form.querySelector('textarea[name="text"]');
     if (textarea) textarea.value = '';
+    const collapseId = form.closest('.collapse')?.id;
+    if (collapseId && typeof bootstrap !== 'undefined') {
+      const el = document.getElementById(collapseId);
+      const inst = bootstrap.Collapse.getOrCreateInstance(el);
+      inst.hide();
+    }
   } catch (err) {
-    console.error(err);
+    console.error('Reply error:', err);
   } finally {
     if (btn) btn.disabled = false;
   }
