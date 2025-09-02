@@ -30,8 +30,8 @@
 ## 📦 Установка и запуск
 ```bash
 # 1. Клонируйте репозиторий
-git clone https://github.com/<your-username>/mini-social-banya.git
-cd mini-social-banya
+git clone https://github.com/ka-uko/mini-social.git
+cd social
 
 # 2. Создайте виртуальное окружение и активируйте его
 python -m venv .venv
