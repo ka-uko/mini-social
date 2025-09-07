@@ -22,7 +22,7 @@
         <img src="{{ post.image.url }}" class="post-image mb-2" alt="">
       {% endif %}
 
-      <div class="d-flex align-items-center gap-3">
+      <div class="post-actions d-flex flex-wrap align-items-center gap-2">
         <button type="button"
                 class="btn btn-sm btn-outline-primary btn-like"
                 data-like-btn
@@ -52,10 +52,7 @@
   <div data-comments>
     {% for c in comments %}
       {% if not c.parent %}
-        {# Корневой комментарий #}
         {% include "partials/comment_item.html" with c=c %}
-
-        {# Прямые ответы на этот комментарий #}
         {% for r in c.replies.all %}
           {% include "partials/comment_item.html" with c=r %}
         {% endfor %}

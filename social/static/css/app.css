@@ -1,23 +1,20 @@
-/* === Картинки постов: фиксируем высоту 16 см  === */
+/* === Картинки постов === */
 .post-image {
   width: 100%;
-  max-height: 16cm;       /* ограничение по высоте */
-  object-fit: contain;    /* влезает целиком без обрезки */
+  max-height: 16cm;
+  object-fit: contain;
   border-radius: .5rem;
 }
 
-
-/* === Навбар: выравнивание и отступы для кнопки Выход === */
-.navbar .nav-hello {
-  opacity: .85;
-}
+/* === Навбар (выравнивание/кнопка выхода) === */
+.navbar .nav-hello { opacity: .85; }
 .navbar .logout-form {
   display: flex;
   align-items: center;
-  margin-left: .75rem;     /* смещаем правее от текста Привет */
+  margin-left: .75rem;
 }
 .navbar .logout-btn {
-  padding: .375rem .75rem; /* как обычная кнопка */
+  padding: .375rem .75rem;
   line-height: 1.25;
 }
 
@@ -28,32 +25,36 @@
   min-height: 120px;
   resize: vertical;
 }
+.comment-form { margin-bottom: 1rem; }
 
-.comment-form {
-  margin-bottom: 1rem;     /* отступ от низа страницы */
-}
-
-/* Кнопка-лайк с иконками сердечка */
+/* Лайк-кнопка */
 .btn-like {
   display: inline-flex;
   align-items: center;
   gap: .35rem;
 }
 .btn-like .bi { font-size: 1rem; }
-.btn-like .bi-heart { opacity: .6; }            /* серый контур — “не лайк” */
-.btn-like .bi-heart-fill { color: #dc3545; }     /* красное заполненное — “лайк” */
+.btn-like .bi-heart { opacity: .6; }
+.btn-like .bi-heart-fill { color: #dc3545; }
 
-/* Форма ввода сообщения в диалоге */
-.message-form {
-  margin-bottom: 1.25rem;     /* отступ от нижнего края страницы */
-}
+/* Форма в диалогах */
+.message-form { margin-bottom: 1.25rem; }
 .message-form textarea {
   width: 100%;
-  min-height: 110px;          /* повыше, как у комментариев */
+  min-height: 110px;
   resize: vertical;
 }
 
+/* Профиль — карточки/чекбоксы */
 .profile-edit-form .card { border-radius: 1rem; }
 .profile-edit-form .form-check { display: flex; align-items: center; gap: .5rem; }
 .profile-edit-form .form-check-input { margin-top: 0; }
 
+/* === НОВОЕ: адаптивные действия под постом === */
+.post-actions { row-gap: .4rem; }
+.post-actions .btn { white-space: nowrap; }
+
+/* Небольшой тюнинг на очень узких экранах */
+@media (max-width: 576px) {
+  .card .btn { padding: .25rem .5rem; font-size: .875rem; }
+}
