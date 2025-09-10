@@ -28,7 +28,7 @@
 - **Прочее**: Django Admin, Django ORM, миграции
 
 ## 📦 Установка и запуск
-```bash
+
 # 1. Клонируйте репозиторий
 git clone https://github.com/ka-uko/mini-social.git
 cd social
